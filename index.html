@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProjectGuard | Project Monitoring</title>
+<style>
+:root{
+  --blue:#1976d2; --blue2:#0d47a1; --bg:#f5f7fb; --card:#ffffff;
+  --text:#172033; --muted:#687386; --border:#e3e8f0;
+  --green:#2e9d68; --orange:#e59b25; --red:#d94b4b;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.topbar{height:68px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 30px;position:sticky;top:0;z-index:5}
+.brand{display:flex;align-items:center;gap:12px;font-weight:800;font-size:21px;color:var(--blue2)}
+.logo{width:38px;height:38px;border-radius:10px;background:var(--blue);color:#fff;display:grid;place-items:center;font-weight:800}
+.badge{font-size:12px;background:#eef5ff;color:var(--blue2);padding:7px 10px;border-radius:20px;font-weight:700}
+.layout{display:flex;min-height:calc(100vh - 68px)}
+.sidebar{width:225px;background:#fff;border-right:1px solid var(--border);padding:22px 14px}
+.navbtn{width:100%;border:0;background:transparent;text-align:left;padding:12px 14px;border-radius:9px;margin-bottom:6px;color:#596477;font-weight:700}
+.navbtn.active,.navbtn:hover{background:#eef5ff;color:var(--blue2)}
+.main{flex:1;padding:28px;max-width:1400px;margin:auto;width:100%}
+.pagehead{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:24px}
+h1{margin:0 0 6px;font-size:28px}
+.subtitle{color:var(--muted);margin:0}
+.primary{background:var(--blue);color:white;border:0;border-radius:8px;padding:12px 18px;font-weight:800}
+.primary:hover{background:var(--blue2)}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(20,40,80,.04)}
+.stat-label{color:var(--muted);font-size:13px;font-weight:700}
+.stat-value{font-size:30px;font-weight:800;margin-top:7px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px}
+.green{color:var(--green)} .orange{color:var(--orange)} .red{color:var(--red)}
+.dot.green{background:var(--green)} .dot.orange{background:var(--orange)} .dot.red{background:var(--red)}
+.contentgrid{display:grid;grid-template-columns:1.55fr .85fr;gap:18px}
+.cardtitle{font-size:16px;font-weight:800;margin:0 0 16px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:13px 8px;border-bottom:1px solid #edf0f5;text-align:left;font-size:13px}
+th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.3px}
+.status{display:inline-flex;align-items:center;padding:5px 9px;border-radius:20px;font-weight:800;font-size:11px}
+.status.low{background:#e9f7f0;color:#267e55}.status.medium{background:#fff5df;color:#a16b13}.status.high{background:#ffebeb;color:#b63c3c}
+.progress{height:8px;background:#edf1f6;border-radius:20px;overflow:hidden;margin-top:7px}
+.progress span{display:block;height:100%;background:var(--blue);border-radius:20px}
+.barrow{display:grid;grid-template-columns:80px 1fr 40px;gap:10px;align-items:center;margin:16px 0;font-size:13px;font-weight:700}
+.bar{height:12px;background:#edf1f6;border-radius:20px;overflow:hidden}.bar span{display:block;height:100%;border-radius:20px}
+.activity{padding:12px 0;border-bottom:1px solid #edf0f5;font-size:13px}
+.activity:last-child{border-bottom:0}
+.formgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+label{font-size:13px;font-weight:800;display:block;margin-bottom:7px}
+input{width:100%;border:1px solid #d8dee8;border-radius:8px;padding:11px;background:#fff}
+input:focus{outline:2px solid #cfe2ff;border-color:var(--blue)}
+.full{grid-column:1/-1}
+.help{font-size:12px;color:var(--muted);margin-top:5px}
+.result{margin-top:20px;padding:18px;border-radius:10px;border:1px solid var(--border);display:none}
+.result.show{display:block}
+.riskbig{font-size:22px;font-weight:900;margin-bottom:8px}
+.reason{color:#536074;line-height:1.5}
+.actions{display:flex;gap:10px;margin-top:18px}
+.secondary{background:#fff;border:1px solid #d5dce7;border-radius:8px;padding:11px 16px;font-weight:800;color:#485467}
+.view{display:none}.view.active{display:block}
+.notice{background:#eef6ff;border-left:4px solid var(--blue);padding:13px 15px;border-radius:6px;color:#34455e;font-size:13px;line-height:1.5;margin-bottom:18px}
+.ref a{color:var(--blue2);font-weight:700;text-decoration:none}.ref a:hover{text-decoration:underline}
+.footer{margin-top:22px;color:#8791a2;font-size:12px;text-align:center}
+@media(max-width:950px){.grid4{grid-template-columns:repeat(2,1fr)}.contentgrid{grid-template-columns:1fr}.sidebar{display:none}}
+@media(max-width:600px){.main{padding:18px}.grid4,.formgrid{grid-template-columns:1fr}.topbar{padding:0 16px}.pagehead{flex-direction:column}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><div class="logo">PG</div>ProjectGuard</div>
+  <div class="badge">SIH 2026 • SIH26103</div>
+</header>
+
+<div class="layout">
+<aside class="sidebar">
+  <button class="navbtn active" onclick="showView('dashboard',this)">Dashboard</button>
+  <button class="navbtn" onclick="showView('add',this)">Add Project</button>
+  <button class="navbtn" onclick="showView('about',this)">About</button>
+</aside>
+
+<main class="main">
+
+<section id="dashboard" class="view active">
+  <div class="pagehead">
+    <div><h1>Project Monitoring Dashboard</h1><p class="subtitle">A simple view of cost, time and physical progress.</p></div>
+    <button class="primary" onclick="showView('add',document.querySelectorAll('.navbtn')[1])">+ Add Project</button>
+  </div>
+
+  <div class="notice"><b>How it works:</b> ProjectGuard compares planned and actual project information and highlights projects that may need attention.</div>
+
+  <div class="grid4">
+    <div class="card"><div class="stat-label">TOTAL PROJECTS</div><div class="stat-value" id="total">12</div></div>
+    <div class="card"><div class="stat-label"><span class="dot green"></span>LOW RISK</div><div class="stat-value green" id="low">6</div></div>
+    <div class="card"><div class="stat-label"><span class="dot orange"></span>MEDIUM RISK</div><div class="stat-value orange" id="medium">3</div></div>
+    <div class="card"><div class="stat-label"><span class="dot red"></span>HIGH RISK</div><div class="stat-value red" id="high">3</div></div>
+  </div>
+
+  <div class="contentgrid">
+    <div class="card">
+      <h2 class="cardtitle">Projects needing attention</h2>
+      <table>
+        <thead><tr><th>Project</th><th>Progress</th><th>Risk</th><th>Reason</th></tr></thead>
+        <tbody id="projectTable"></tbody>
+      </table>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:18px">
+        <h2 class="cardtitle">Risk overview</h2>
+        <div class="barrow"><span>Low</span><div class="bar"><span style="width:50%;background:#2e9d68"></span></div><span id="lowPct">50%</span></div>
+        <div class="barrow"><span>Medium</span><div class="bar"><span style="width:25%;background:#e59b25"></span></div><span id="medPct">25%</span></div>
+        <div class="barrow"><span>High</span><div class="bar"><span style="width:25%;background:#d94b4b"></span></div><span id="highPct">25%</span></div>
+      </div>
+      <div class="card">
+        <h2 class="cardtitle">Recent checks</h2>
+        <div class="activity"><b>Metro Expansion</b><br><span style="color:#d94b4b">High risk detected</span></div>
+        <div class="activity"><b>Water Supply Phase 2</b><br><span style="color:#a16b13">Progress gap found</span></div>
+        <div class="activity"><b>Rural Road Package</b><br><span style="color:#267e55">On track</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="add" class="view">
+  <div class="pagehead">
+    <div><h1>Check a Project</h1><p class="subtitle">Enter simple project details to see an early risk indication.</p></div>
+  </div>
+  <div class="card">
+    <div class="notice">This prototype uses transparent rule-based checks for the demo. It is designed to show the basic idea before adding more advanced predictive models.</div>
+    <div class="formgrid">
+      <div><label>Project Name</label><input id="name" value="Metro Expansion Project"></div>
+      <div><label>Approved Cost (₹ crore)</label><input id="approved" type="number" value="850"></div>
+      <div><label>Current Expenditure (₹ crore)</label><input id="spent" type="number" value="910"></div>
+      <div><label>Planned Progress (%)</label><input id="planned" type="number" min="0" max="100" value="42"></div>
+      <div><label>Actual Progress (%)</label><input id="actual" type="number" min="0" max="100" value="27"></div>
+      <div><label>Months Remaining</label><input id="months" type="number" min="0" value="5"></div>
+    </div>
+    <div class="actions">
+      <button class="primary" onclick="checkProject()">CHECK PROJECT</button>
+      <button class="secondary" onclick="loadSafeExample()">Load Low-Risk Example</button>
+    </div>
+    <div id="result" class="result"></div>
+  </div>
+</section>
+
+<section id="about" class="view">
+  <div class="pagehead"><div><h1>About ProjectGuard</h1><p class="subtitle">A beginner-friendly prototype for SIH26103.</p></div></div>
+  <div class="card">
+    <h2 class="cardtitle">The idea</h2>
+    <p>ProjectGuard brings basic project information into one simple dashboard and highlights possible cost, time and progress concerns.</p>
+    <h2 class="cardtitle" style="margin-top:24px">Demo flow</h2>
+    <p><b>1.</b> Add project details → <b>2.</b> Compare planned vs actual → <b>3.</b> Assign Low / Medium / High risk → <b>4.</b> Show the reason for concern.</p>
+    <h2 class="cardtitle" style="margin-top:24px">Reference</h2>
+    <p class="ref">MoSPI PAIMANA Public Dashboard:
+      <a href="https://ipm.mospi.gov.in/Home/PublicDashboard" target="_blank" rel="noopener">Open official dashboard ↗</a>
+    </p>
+    <p class="help">Prototype for demonstration. Risk rules are illustrative and are not an official government risk-scoring system.</p>
+  </div>
+</section>
+
+<div class="footer">ProjectGuard • Smart India Hackathon 2026 • SIH26103</div>
+</main>
+</div>
+
+<script>
+const projects = [
+ {name:"Metro Expansion Project", progress:27, risk:"High", reason:"Cost is above approved amount and progress is behind plan."},
+ {name:"Water Supply Phase 2", progress:54, risk:"Medium", reason:"Physical progress is below planned progress."},
+ {name:"Rural Road Package", progress:72, risk:"Low", reason:"Project is broadly on track."},
+ {name:"Hospital Upgrade", progress:61, risk:"Medium", reason:"Moderate progress gap detected."},
+ {name:"Solar Park Phase 1", progress:83, risk:"Low", reason:"Project is broadly on track."},
+ {name:"Bridge Rehabilitation", progress:35, risk:"High", reason:"Large progress gap detected."},
+ {name:"Industrial Corridor", progress:68, risk:"Low", reason:"Project is broadly on track."},
+ {name:"Rail Station Works", progress:48, risk:"Medium", reason:"Moderate progress gap detected."}
+];
+
+function renderProjects(){
+ const table=document.getElementById("projectTable");
+ table.innerHTML=projects.slice(0,8).map(p=>`
+ <tr>
+  <td><b>${p.name}</b></td>
+  <td style="min-width:120px">${p.progress}%<div class="progress"><span style="width:${p.progress}%"></span></div></td>
+  <td><span class="status ${p.risk.toLowerCase()}">${p.risk}</span></td>
+  <td>${p.reason}</td>
+ </tr>`).join("");
+ updateStats();
+}
+function updateStats(){
+ const total=projects.length;
+ const low=projects.filter(p=>p.risk==="Low").length;
+ const medium=projects.filter(p=>p.risk==="Medium").length;
+ const high=projects.filter(p=>p.risk==="High").length;
+ document.getElementById("total").textContent=total;
+ document.getElementById("low").textContent=low;
+ document.getElementById("medium").textContent=medium;
+ document.getElementById("high").textContent=high;
+ document.getElementById("lowPct").textContent=Math.round(low/total*100)+"%";
+ document.getElementById("medPct").textContent=Math.round(medium/total*100)+"%";
+ document.getElementById("highPct").textContent=Math.round(high/total*100)+"%";
+ document.querySelectorAll(".barrow")[0].querySelector(".bar span").style.width=(low/total*100)+"%";
+ document.querySelectorAll(".barrow")[1].querySelector(".bar span").style.width=(medium/total*100)+"%";
+ document.querySelectorAll(".barrow")[2].querySelector(".bar span").style.width=(high/total*100)+"%";
+}
+function showView(id,btn){
+ document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+ document.querySelectorAll(".navbtn").forEach(b=>b.classList.remove("active"));
+ if(btn) btn.classList.add("active");
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+function checkProject(){
+ const name=document.getElementById("name").value.trim()||"Unnamed Project";
+ const approved=Number(document.getElementById("approved").value);
+ const spent=Number(document.getElementById("spent").value);
+ const planned=Number(document.getElementById("planned").value);
+ const actual=Number(document.getElementById("actual").value);
+ const months=Number(document.getElementById("months").value);
+ const costOver=approved>0 ? ((spent-approved)/approved)*100 : 0;
+ const gap=planned-actual;
+ let score=0, reasons=[];
+ if(costOver>10){score+=2; reasons.push(`cost is ${costOver.toFixed(1)}% above the approved amount`)}
+ else if(costOver>5){score+=1; reasons.push(`cost is ${costOver.toFixed(1)}% above the approved amount`)}
+ if(gap>15){score+=2; reasons.push(`progress is ${gap.toFixed(0)} percentage points behind plan`)}
+ else if(gap>7){score+=1; reasons.push(`progress is ${gap.toFixed(0)} percentage points behind plan`)}
+ if(months<=3 && actual<60){score+=1; reasons.push("completion is approaching while progress remains limited")}
+ let risk="Low", cls="low";
+ if(score>=3){risk="High";cls="high"}
+ else if(score>=1){risk="Medium";cls="medium"}
+ const reason=reasons.length?reasons.join("; ")+".":"no major warning condition was detected.";
+ const box=document.getElementById("result");
+ box.className="result show";
+ box.innerHTML=`<div class="riskbig ${cls}">${risk.toUpperCase()} RISK</div>
+ <div><b>${name}</b></div>
+ <div class="reason" style="margin-top:8px"><b>Why:</b> ${reason}</div>
+ <div class="reason" style="margin-top:8px"><b>Cost change:</b> ${costOver.toFixed(1)}% &nbsp; | &nbsp; <b>Progress gap:</b> ${gap.toFixed(0)} points</div>
+ <div class="help" style="margin-top:10px">Demo indication only — a real deployment would be validated against historical project data.</div>`;
+}
+function loadSafeExample(){
+ document.getElementById("name").value="Rural Road Package";
+ document.getElementById("approved").value=500;
+ document.getElementById("spent").value=510;
+ document.getElementById("planned").value=70;
+ document.getElementById("actual").value=68;
+ document.getElementById("months").value=10;
+ document.getElementById("result").className="result";
+}
+renderProjects();
+</script>
+</body>
+</html>
